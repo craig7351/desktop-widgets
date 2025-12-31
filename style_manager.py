@@ -47,14 +47,15 @@ class StyleManager:
                 margin: 5px 0;
             }}
             #BigTimeLabel {{
-                font-size: 38px;
+                font-size: 54px;
                 font-weight: bold;
-                margin-top: 5px;
+                margin-top: 2px;
             }}
             #LocationLabel {{
-                font-size: 20px;
+                font-size: 14px;
                 color: {text_css};
-                margin-bottom: 10px;
+                opacity: 0.6;
+                margin-top: 2px;
             }}
             .TimerBtn {{
                 background-color: rgba(255, 255, 255, 0.2);
