@@ -130,21 +130,47 @@ class DesktopWidget(QWidget):
         self.forecast_layout.setSpacing(5)
         self.forecast_widgets = []
         
+        # 3. To-Do List (Now moved here under Forecast)
+        self.todo_card = QFrame()
+        self.todo_card.setProperty("class", "Card")
+        self.todo_card.setFixedWidth(280) # 對齊左欄寬度
+        todo_vbox = QVBoxLayout(self.todo_card)
+        
+        todo_title_hbox = QHBoxLayout()
+        todo_title = QLabel("TO-DO LIST")
+        todo_title.setObjectName("TodoTitle")
+        todo_title_hbox.addWidget(todo_title)
+        
+        self.todo_input = QLineEdit()
+        self.todo_input.setPlaceholderText("Add task...")
+        self.todo_input.setProperty("class", "TodoInput")
+        self.todo_input.setFixedHeight(25)
+        self.todo_input.returnPressed.connect(self.add_todo)
+        
+        self.todo_list_container = QVBoxLayout()
+        self.todo_list_container.setSpacing(2)
+        
+        todo_vbox.addLayout(todo_title_hbox)
+        todo_vbox.addLayout(self.todo_list_container)
+        todo_vbox.addWidget(self.todo_input)
+        
         left_column.addWidget(self.main_card)
         left_column.addWidget(self.forecast_area)
-        # 移除 addStretch() 以消除下方空白
+        left_column.addWidget(self.todo_card)
+        left_column.addStretch()
         
         # --- Right Column: Detail Card ---
         right_column = QVBoxLayout()
         
-        # 3. Detail Card (右側)
+        # 4. Detail Card (右側 - 全高度)
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
         self.detail_card.setFixedWidth(220) 
-        self.detail_card.setFixedHeight(340) # 從 400 降至 340
+        self.detail_card.setMinimumHeight(550) # 增加最小高度以對齊左側三卡片
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedSize(220, 340)
+        self.stacked_detail.setFixedWidth(220)
+        self.stacked_detail.setMinimumHeight(550)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()
@@ -253,36 +279,11 @@ class DesktopWidget(QWidget):
         self.stacked_detail.addWidget(self.timer_page)
         
         right_column.addWidget(self.detail_card)
-        right_column.addStretch()
         
         top_section.addLayout(left_column)
         top_section.addLayout(right_column)
         
-        # --- Bottom Row (To-Do List) ---
-        self.todo_card = QFrame()
-        self.todo_card.setProperty("class", "Card")
-        todo_vbox = QVBoxLayout(self.todo_card)
-        
-        todo_title_hbox = QHBoxLayout()
-        todo_title = QLabel("TO-DO LIST")
-        todo_title.setObjectName("TodoTitle")
-        todo_title_hbox.addWidget(todo_title)
-        
-        self.todo_input = QLineEdit()
-        self.todo_input.setPlaceholderText("Add task...")
-        self.todo_input.setProperty("class", "TodoInput")
-        self.todo_input.setFixedHeight(25)
-        self.todo_input.returnPressed.connect(self.add_todo)
-        
-        self.todo_list_container = QVBoxLayout()
-        self.todo_list_container.setSpacing(2)
-        
-        todo_vbox.addLayout(todo_title_hbox)
-        todo_vbox.addLayout(self.todo_list_container)
-        todo_vbox.addWidget(self.todo_input)
-        
         self.main_layout.addLayout(top_section)
-        self.main_layout.addWidget(self.todo_card)
         
         self.refresh_todo_ui()
         self.update_styles()
