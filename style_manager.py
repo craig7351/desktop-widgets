@@ -150,11 +150,22 @@ class StyleManager:
                 border-radius: 2px;
             }}
             QProgressBar::chunk {{
-                background-color: rgba(255, 255, 255, 0.4);
                 border-radius: 2px;
             }}
-            QProgressBar[critical="true"]::chunk {{
-                background-color: rgba(255, 85, 85, 0.8);
+            /* CPU 基調色 (綠) */
+            .CpuBar::chunk {{
+                background-color: rgba(0, 230, 118, 0.6);
+            }}
+            /* RAM 基調色 (黃) */
+            .RamBar::chunk {{
+                background-color: rgba(255, 214, 0, 0.6);
+            }}
+            /* 狀態色擴充 */
+            QProgressBar[status="warning"]::chunk {{
+                background-color: rgba(255, 145, 0, 0.8);
+            }}
+            QProgressBar[status="critical"]::chunk {{
+                background-color: rgba(255, 23, 68, 0.9);
             }}
             .NetDownBar::chunk {{
                 background-color: rgba(0, 180, 255, 0.6);

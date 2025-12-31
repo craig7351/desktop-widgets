@@ -209,6 +209,7 @@ class DesktopWidget(QWidget):
         self.cpu_bar = QProgressBar()
         self.cpu_bar.setFixedHeight(4)
         self.cpu_bar.setTextVisible(False)
+        self.cpu_bar.setProperty("class", "CpuBar")
         weather_grid.addWidget(self.cpu_bar, 6, 0, 1, 2)
         
         weather_grid.addWidget(QLabel("RAM"), 7, 0)
@@ -217,6 +218,7 @@ class DesktopWidget(QWidget):
         self.ram_bar = QProgressBar()
         self.ram_bar.setFixedHeight(4)
         self.ram_bar.setTextVisible(False)
+        self.ram_bar.setProperty("class", "RamBar")
         weather_grid.addWidget(self.ram_bar, 8, 0, 1, 2)
         
         weather_grid.addWidget(QLabel("DL ⬇️"), 9, 0)
@@ -527,13 +529,20 @@ class DesktopWidget(QWidget):
             self.cpu_val.setText(f"{cpu}%")
             self.ram_val.setText(f"{ram}%")
             
-            # 更新進度條
+            # 更新進度條與狀態顏色
             self.cpu_bar.setValue(int(cpu))
             self.ram_bar.setValue(int(ram))
             
-            # 警示色邏輯 (超過 90% 變紅)
-            self.cpu_bar.setProperty("critical", cpu > 90)
-            self.ram_bar.setProperty("critical", ram > 90)
+            # 使用率顏色狀態判定
+            def get_status(p):
+                if p >= 90: return "critical"
+                if p >= 70: return "warning"
+                return "normal"
+            
+            self.cpu_bar.setProperty("status", get_status(cpu))
+            self.ram_bar.setProperty("status", get_status(ram))
+            
+            # 觸發樣式重新應用
             self.cpu_bar.style().unpolish(self.cpu_bar)
             self.cpu_bar.style().polish(self.cpu_bar)
             self.ram_bar.style().unpolish(self.ram_bar)
