@@ -70,8 +70,13 @@ class DesktopWidget(QWidget):
         self.main_layout.setContentsMargins(15, 15, 15, 15)
         self.main_layout.setSpacing(10)
         
-        # --- Top Row (Main & Details) ---
-        top_layout = QHBoxLayout()
+        # --- Top Section (Two Columns) ---
+        top_section = QHBoxLayout()
+        top_section.setSpacing(10)
+        
+        # --- Left Column: Main Card + Forecast ---
+        left_column = QVBoxLayout()
+        left_column.setSpacing(10)
         
         # 1. Main Info Card (左上)
         self.main_card = QFrame()
@@ -105,18 +110,34 @@ class DesktopWidget(QWidget):
         main_vbox.addLayout(temp_hbox)
         main_vbox.addWidget(self.desc_label)
         
-        # 2. Detail Card (右上) - 使用 StackedWidget 切換模式
+        # 2. Forecast Area (Now under main_card)
+        self.forecast_area = QFrame()
+        self.forecast_area.setFixedWidth(280)
+        self.forecast_layout = QHBoxLayout(self.forecast_area)
+        self.forecast_layout.setContentsMargins(0, 0, 0, 0)
+        self.forecast_layout.setSpacing(5)
+        self.forecast_widgets = []
+        
+        left_column.addWidget(self.main_card)
+        left_column.addWidget(self.forecast_area)
+        left_column.addStretch()
+        
+        # --- Right Column: Detail Card ---
+        right_column = QVBoxLayout()
+        
+        # 3. Detail Card (右側) - 增加高度以容納時鐘與統計
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
-        self.detail_card.setFixedWidth(200)
-        self.detail_card.setFixedHeight(220)
+        self.detail_card.setFixedWidth(220) # 稍微加寬
+        self.detail_card.setFixedHeight(400) # 加長
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedSize(200, 220)
+        self.stacked_detail.setFixedSize(220, 400)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()
         weather_grid = QGridLayout(self.weather_page)
+        weather_grid.setContentsMargins(10, 20, 10, 10) # 頂部留更多空間給時鐘
         
         self.detail_widgets = {}
         self.time_label_big = ClickableLabel("00:00:00")
@@ -192,11 +213,11 @@ class DesktopWidget(QWidget):
         input_hbox.addWidget(self.sec_input)
         
         btn_hbox = QHBoxLayout()
-        self.start_timer_btn = QPushButton("開始")
+        self.start_timer_btn = QPushButton("Start")
         self.start_timer_btn.setProperty("class", "TimerBtn")
         self.start_timer_btn.clicked.connect(self.toggle_timer_logic)
         
-        self.back_btn = QPushButton("返回")
+        self.back_btn = QPushButton("Back")
         self.back_btn.setProperty("class", "TimerBtn")
         self.back_btn.clicked.connect(self.switch_to_weather)
         
@@ -210,16 +231,13 @@ class DesktopWidget(QWidget):
         self.stacked_detail.addWidget(self.weather_page)
         self.stacked_detail.addWidget(self.timer_page)
         
-        top_layout.addWidget(self.main_card)
-        top_layout.addWidget(self.detail_card)
+        right_column.addWidget(self.detail_card)
+        right_column.addStretch()
         
-        # --- Bottom Row (Forecast) ---
-        self.forecast_area = QFrame()
-        self.forecast_layout = QHBoxLayout(self.forecast_area)
-        self.forecast_layout.setContentsMargins(0, 0, 0, 0)
-        self.forecast_widgets = []
+        top_section.addLayout(left_column)
+        top_section.addLayout(right_column)
         
-        # --- Bottom Row 2 (To-Do List) ---
+        # --- Bottom Row (To-Do List) ---
         self.todo_card = QFrame()
         self.todo_card.setProperty("class", "Card")
         todo_vbox = QVBoxLayout(self.todo_card)
@@ -242,8 +260,7 @@ class DesktopWidget(QWidget):
         todo_vbox.addLayout(self.todo_list_container)
         todo_vbox.addWidget(self.todo_input)
         
-        self.main_layout.addLayout(top_layout)
-        self.main_layout.addWidget(self.forecast_area)
+        self.main_layout.addLayout(top_section)
         self.main_layout.addWidget(self.todo_card)
         
         self.refresh_todo_ui()
@@ -301,7 +318,7 @@ class DesktopWidget(QWidget):
             elif item.layout():
                 item.layout().deleteLater()
             
-        for day in data["forecast"]:
+        for day in data["forecast"][:3]:
             f_card = QFrame()
             f_card.setProperty("class", "Card")
             f_vbox = QVBoxLayout(f_card)
