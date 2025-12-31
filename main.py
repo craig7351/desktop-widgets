@@ -81,7 +81,7 @@ class DesktopWidget(QWidget):
         # 1. Main Info Card (左上)
         self.main_card = QFrame()
         self.main_card.setProperty("class", "Card")
-        self.main_card.setFixedWidth(280)
+        self.main_card.setFixedWidth(260)
         self.main_card.setFixedHeight(220)
         main_vbox = QVBoxLayout(self.main_card)
         
@@ -128,7 +128,7 @@ class DesktopWidget(QWidget):
         
         # 2. Forecast Area (Now under main_card)
         self.forecast_area = QFrame()
-        self.forecast_area.setFixedWidth(280)
+        self.forecast_area.setFixedWidth(260)
         self.forecast_area.setFixedHeight(110) # 固定高度
         self.forecast_layout = QHBoxLayout(self.forecast_area)
         self.forecast_layout.setContentsMargins(0, 0, 0, 0)
@@ -138,7 +138,7 @@ class DesktopWidget(QWidget):
         # 3. To-Do List
         self.todo_card = QFrame()
         self.todo_card.setProperty("class", "Card")
-        self.todo_card.setFixedWidth(280)
+        self.todo_card.setFixedWidth(260)
         self.todo_card.setFixedHeight(180) # 固定高度
         todo_vbox = QVBoxLayout(self.todo_card)
         todo_vbox.setContentsMargins(10, 8, 10, 8)
@@ -173,12 +173,12 @@ class DesktopWidget(QWidget):
         # 4. Detail Card (右側 - 全高度對齊)
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
-        self.detail_card.setFixedWidth(220) 
+        self.detail_card.setFixedWidth(240) 
         # 總高度 = 220(Main) + 110(Forecast) + 180(Todo) + 5*2(Spacing) = 520
         self.detail_card.setFixedHeight(520) 
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedSize(220, 520)
+        self.stacked_detail.setFixedSize(240, 520)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()

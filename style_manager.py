@@ -39,7 +39,7 @@ class StyleManager:
                 font-weight: bold;
             }}
             #WeatherIcon {{
-                font-size: 72px;
+                font-size: 64px;
                 margin-left: 10px;
             }}
             #ForecastIcon {{
@@ -47,15 +47,15 @@ class StyleManager:
                 margin: 5px 0;
             }}
             #BigTimeLabel {{
-                font-size: 54px;
+                font-size: 48px;
                 font-weight: bold;
-                margin-top: 2px;
+                margin-top: 8px;
             }}
             #LocationLabel {{
                 font-size: 14px;
                 color: {text_css};
                 opacity: 0.6;
-                margin-top: 2px;
+                margin-top: 0px;
             }}
             .TimerBtn {{
                 background-color: rgba(255, 255, 255, 0.2);
