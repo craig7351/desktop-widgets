@@ -85,8 +85,20 @@ class DesktopWidget(QWidget):
         self.main_card.setFixedHeight(220)
         main_vbox = QVBoxLayout(self.main_card)
         
+        header_hbox = QHBoxLayout()
         self.day_label = QLabel("MONDAY")
         self.day_label.setObjectName("DayLabel")
+        
+        self.refresh_btn = QPushButton("↻")
+        self.refresh_btn.setProperty("class", "RefreshBtn")
+        self.refresh_btn.setFixedSize(24, 24)
+        self.refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.refresh_btn.clicked.connect(self.update_weather)
+        
+        header_hbox.addWidget(self.day_label)
+        header_hbox.addStretch()
+        header_hbox.addWidget(self.refresh_btn)
+        
         self.date_label = QLabel("APRIL 19")
         self.date_label.setObjectName("DateLabel")
         
@@ -104,7 +116,7 @@ class DesktopWidget(QWidget):
         self.desc_label = QLabel("PARTLY CLOUDY")
         self.desc_label.setObjectName("DescLabel")
         
-        main_vbox.addWidget(self.day_label)
+        main_vbox.addLayout(header_hbox)
         main_vbox.addWidget(self.date_label)
         main_vbox.addStretch()
         main_vbox.addLayout(temp_hbox)

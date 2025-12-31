@@ -124,4 +124,16 @@ class StyleManager:
             .ForecastTemp {{
                 font-size: 14px;
             }}
+            .RefreshBtn {{
+                background-color: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                color: {text_css};
+                font-size: 14px;
+                font-weight: bold;
+                padding: 2px;
+            }}
+            .RefreshBtn:hover {{
+                background-color: rgba(255, 255, 255, 0.3);
+            }}
         """
