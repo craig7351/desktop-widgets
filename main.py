@@ -68,7 +68,7 @@ class DesktopWidget(QWidget):
         
         self.main_layout = QVBoxLayout(self.main_container)
         self.main_layout.setContentsMargins(15, 15, 15, 15)
-        self.main_layout.setSpacing(10)
+        self.main_layout.setSpacing(5)
         
         # --- Top Section (Two Columns) ---
         top_section = QHBoxLayout()
@@ -132,24 +132,25 @@ class DesktopWidget(QWidget):
         
         left_column.addWidget(self.main_card)
         left_column.addWidget(self.forecast_area)
-        left_column.addStretch()
+        # 移除 addStretch() 以消除下方空白
         
         # --- Right Column: Detail Card ---
         right_column = QVBoxLayout()
         
-        # 3. Detail Card (右側) - 增加高度以容納時鐘與統計
+        # 3. Detail Card (右側)
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
-        self.detail_card.setFixedWidth(220) # 稍微加寬
-        self.detail_card.setFixedHeight(400) # 加長
+        self.detail_card.setFixedWidth(220) 
+        self.detail_card.setFixedHeight(340) # 從 400 降至 340
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedSize(220, 400)
+        self.stacked_detail.setFixedSize(220, 340)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()
         weather_grid = QGridLayout(self.weather_page)
-        weather_grid.setContentsMargins(10, 20, 10, 10) # 頂部留更多空間給時鐘
+        weather_grid.setContentsMargins(10, 5, 10, 10) # 頂部邊距縮小
+        weather_grid.setVerticalSpacing(2) # 壓縮行高
         
         self.detail_widgets = {}
         self.time_label_big = ClickableLabel("00:00:00")
