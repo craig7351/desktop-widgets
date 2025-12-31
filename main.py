@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QMenu, QFrame, QGridLayout, QColorDialog,
-                             QPushButton, QLineEdit, QStackedWidget)
+                             QPushButton, QLineEdit, QStackedWidget, QProgressBar)
 from PyQt6.QtCore import Qt, QTimer, QPoint, QTime, QPropertyAnimation, QSequentialAnimationGroup, pyqtSignal
 from PyQt6.QtGui import QColor, QPalette
 from weather_service import WeatherService
@@ -180,18 +180,26 @@ class DesktopWidget(QWidget):
         weather_grid.addWidget(QLabel("CPU"), 5, 0)
         self.cpu_val = QLabel("--%")
         weather_grid.addWidget(self.cpu_val, 5, 1)
+        self.cpu_bar = QProgressBar()
+        self.cpu_bar.setFixedHeight(4)
+        self.cpu_bar.setTextVisible(False)
+        weather_grid.addWidget(self.cpu_bar, 6, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("RAM"), 6, 0)
+        weather_grid.addWidget(QLabel("RAM"), 7, 0)
         self.ram_val = QLabel("--%")
-        weather_grid.addWidget(self.ram_val, 6, 1)
+        weather_grid.addWidget(self.ram_val, 7, 1)
+        self.ram_bar = QProgressBar()
+        self.ram_bar.setFixedHeight(4)
+        self.ram_bar.setTextVisible(False)
+        weather_grid.addWidget(self.ram_bar, 8, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("DL"), 7, 0)
+        weather_grid.addWidget(QLabel("DL"), 9, 0)
         self.net_down_val = QLabel("-- KB/s")
-        weather_grid.addWidget(self.net_down_val, 7, 1)
+        weather_grid.addWidget(self.net_down_val, 9, 1)
         
-        weather_grid.addWidget(QLabel("UP"), 8, 0)
+        weather_grid.addWidget(QLabel("UP"), 10, 0)
         self.net_up_val = QLabel("-- KB/s")
-        weather_grid.addWidget(self.net_up_val, 8, 1)
+        weather_grid.addWidget(self.net_up_val, 10, 1)
         
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
@@ -262,7 +270,7 @@ class DesktopWidget(QWidget):
         
         self.todo_input = QLineEdit()
         self.todo_input.setPlaceholderText("Add task...")
-        self.todo_input.setProperty("class", "TimerInput")
+        self.todo_input.setProperty("class", "TodoInput")
         self.todo_input.setFixedHeight(25)
         self.todo_input.returnPressed.connect(self.add_todo)
         
@@ -507,6 +515,18 @@ class DesktopWidget(QWidget):
             ram = psutil.virtual_memory().percent
             self.cpu_val.setText(f"{cpu}%")
             self.ram_val.setText(f"{ram}%")
+            
+            # 更新進度條
+            self.cpu_bar.setValue(int(cpu))
+            self.ram_bar.setValue(int(ram))
+            
+            # 警示色邏輯 (超過 90% 變紅)
+            self.cpu_bar.setProperty("critical", cpu > 90)
+            self.ram_bar.setProperty("critical", ram > 90)
+            self.cpu_bar.style().unpolish(self.cpu_bar)
+            self.cpu_bar.style().polish(self.cpu_bar)
+            self.ram_bar.style().unpolish(self.ram_bar)
+            self.ram_bar.style().polish(self.ram_bar)
             
             # Network
             now = datetime.now()

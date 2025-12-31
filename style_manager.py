@@ -80,6 +80,14 @@ class StyleManager:
                 font-weight: bold;
                 color: {text_css};
             }}
+            .TodoInput {{
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: {text_css};
+                font-size: 12px;
+                border-radius: 5px;
+                padding: 2px 5px;
+            }}
             .TodoItem {{
                 padding: 2px 5px;
                 font-size: 11px;
@@ -135,5 +143,17 @@ class StyleManager:
             }}
             .RefreshBtn:hover {{
                 background-color: rgba(255, 255, 255, 0.3);
+            }}
+            QProgressBar {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: none;
+                border-radius: 2px;
+            }}
+            QProgressBar::chunk {{
+                background-color: rgba(255, 255, 255, 0.4);
+                border-radius: 2px;
+            }}
+            QProgressBar[critical="true"]::chunk {{
+                background-color: rgba(255, 85, 85, 0.8);
             }}
         """
