@@ -125,16 +125,20 @@ class DesktopWidget(QWidget):
         # 2. Forecast Area (Now under main_card)
         self.forecast_area = QFrame()
         self.forecast_area.setFixedWidth(280)
+        self.forecast_area.setFixedHeight(110) # 固定高度
         self.forecast_layout = QHBoxLayout(self.forecast_area)
         self.forecast_layout.setContentsMargins(0, 0, 0, 0)
         self.forecast_layout.setSpacing(5)
         self.forecast_widgets = []
         
-        # 3. To-Do List (Now moved here under Forecast)
+        # 3. To-Do List
         self.todo_card = QFrame()
         self.todo_card.setProperty("class", "Card")
-        self.todo_card.setFixedWidth(280) # 對齊左欄寬度
+        self.todo_card.setFixedWidth(280)
+        self.todo_card.setFixedHeight(180) # 固定高度
         todo_vbox = QVBoxLayout(self.todo_card)
+        todo_vbox.setContentsMargins(10, 8, 10, 8)
+        todo_vbox.setSpacing(5)
         
         todo_title_hbox = QHBoxLayout()
         todo_title = QLabel("TO-DO LIST")
@@ -162,21 +166,21 @@ class DesktopWidget(QWidget):
         # --- Right Column: Detail Card ---
         right_column = QVBoxLayout()
         
-        # 4. Detail Card (右側 - 全高度)
+        # 4. Detail Card (右側 - 全高度對齊)
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
         self.detail_card.setFixedWidth(220) 
-        self.detail_card.setMinimumHeight(550) # 增加最小高度以對齊左側三卡片
+        # 總高度 = 220(Main) + 110(Forecast) + 180(Todo) + 5*2(Spacing) = 520
+        self.detail_card.setFixedHeight(520) 
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedWidth(220)
-        self.stacked_detail.setMinimumHeight(550)
+        self.stacked_detail.setFixedSize(220, 520)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()
         weather_grid = QGridLayout(self.weather_page)
-        weather_grid.setContentsMargins(10, 5, 10, 10) # 頂部邊距縮小
-        weather_grid.setVerticalSpacing(2) # 壓縮行高
+        weather_grid.setContentsMargins(10, 5, 10, 5) # 壓縮邊距
+        weather_grid.setVerticalSpacing(0) # 壓縮行距
         
         self.detail_widgets = {}
         self.time_label_big = ClickableLabel("00:00:00")
@@ -355,7 +359,9 @@ class DesktopWidget(QWidget):
         for day in data["forecast"][:3]:
             f_card = QFrame()
             f_card.setProperty("class", "Card")
+            f_card.setFixedHeight(105) # 縮小預報卡片高度
             f_vbox = QVBoxLayout(f_card)
+            f_vbox.setContentsMargins(2, 5, 2, 5) # 壓縮內距
             f_vbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             d_l = QLabel(day["day"].upper())
@@ -363,6 +369,7 @@ class DesktopWidget(QWidget):
             
             i_l = QLabel(day["icon"])
             i_l.setObjectName("ForecastIcon")
+            i_l.setFixedHeight(30) # 限制圖示高度
             i_l.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             t_l = QLabel(f"{day['min']} ~ {day['max']}°C")
