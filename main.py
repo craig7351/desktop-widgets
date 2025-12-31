@@ -162,6 +162,7 @@ class DesktopWidget(QWidget):
         todo_vbox.addLayout(self.todo_list_container)
         todo_vbox.addWidget(self.todo_input)
         
+        left_column.setSpacing(10) # 確保間距為 10
         left_column.addWidget(self.main_card)
         left_column.addWidget(self.forecast_area)
         left_column.addWidget(self.todo_card)
@@ -169,16 +170,17 @@ class DesktopWidget(QWidget):
         
         # --- Right Column: Detail Card ---
         right_column = QVBoxLayout()
+        right_column.setAlignment(Qt.AlignmentFlag.AlignTop) # 確保頂部對齊
         
         # 4. Detail Card (右側 - 全高度對齊)
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
         self.detail_card.setFixedWidth(240) 
-        # 總高度 = 220(Main) + 110(Forecast) + 180(Todo) + 5*2(Spacing) = 520
-        self.detail_card.setFixedHeight(520) 
+        # 總高度 = 220(Main) + 10(Gap) + 110(Forecast) + 10(Gap) + 180(Todo) = 530
+        self.detail_card.setFixedHeight(530) 
         
         self.stacked_detail = QStackedWidget(self.detail_card)
-        self.stacked_detail.setFixedSize(240, 520)
+        self.stacked_detail.setFixedSize(240, 530)
         
         # --- 模式 1: 氣象與大時鐘 ---
         self.weather_page = QWidget()
@@ -321,9 +323,12 @@ class DesktopWidget(QWidget):
         self.update_time_and_date()
         
         self.weather_timer = QTimer(self)
-        self.weather_timer.timeout.connect(self.update_weather)
+        self.weather_timer.timeout.connect(self.scheduled_weather_update)
         self.weather_timer.start(1800000)
-        self.update_weather()
+        
+        # 啟動時延遲 2 秒抓取
+        self.retry_count = 0
+        QTimer.singleShot(2000, self.initial_weather_fetch)
         
         # 倒數計時專用計時器
         self.countdown_timer = QTimer(self)
@@ -341,9 +346,24 @@ class DesktopWidget(QWidget):
         self.date_label.setText(now.strftime("%B %d, %Y").upper())
         self.time_label_big.setText(now.strftime("%H:%M:%S"))
 
-    def update_weather(self):
+    def initial_weather_fetch(self):
+        self.update_weather(is_retry=True)
+
+    def scheduled_weather_update(self):
+        self.retry_count = 0 # 定時更新重置重試計數
+        self.update_weather(is_retry=False)
+
+    def update_weather(self, is_retry=False):
         data = self.weather_service.fetch_weather()
-        if not data: return
+        if not data:
+            if is_retry and self.retry_count < 2:
+                self.retry_count += 1
+                print(f"Weather fetch failed. Retrying ({self.retry_count}/2)...")
+                QTimer.singleShot(2000, lambda: self.update_weather(is_retry=True))
+            return
+        
+        # Reset retry count on success
+        self.retry_count = 0
         
         self.temp_label.setText(f"{data['temp_C']}°C")
         self.desc_label.setText(data['desc'].upper())
