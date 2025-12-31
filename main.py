@@ -102,8 +102,13 @@ class DesktopWidget(QWidget):
         self.sunset_val = QLabel("--")
         detail_grid.addWidget(self.sunset_val, 3, 1)
         
+        detail_grid.addWidget(QLabel("Rain"), 4, 0)
+        self.rain_val = QLabel("--%")
+        detail_grid.addWidget(self.rain_val, 4, 1)
+        
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
+        self.detail_widgets["rain"] = self.rain_val
             
         top_layout.addWidget(self.main_card)
         top_layout.addWidget(self.detail_card)
@@ -149,6 +154,7 @@ class DesktopWidget(QWidget):
         self.location_label.setText(self.current_city_name)
         self.detail_widgets["sunrise"].setText(data["sunrise"])
         self.detail_widgets["sunset"].setText(data["sunset"])
+        self.detail_widgets["rain"].setText(f"{data['rain_chance']}%")
         
         # 更新預報
         # 先清除舊的
