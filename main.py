@@ -1,4 +1,7 @@
 import sys
+import psutil
+import json
+import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QMenu, QFrame, QGridLayout, QColorDialog,
@@ -31,6 +34,14 @@ class DesktopWidget(QWidget):
         self.text_color = QColor(255, 255, 255)
         self.text_alpha = 255
         self.current_opacity = 0.95 # 整體視窗不透明度
+        
+        # To-Do 列表數據
+        self.todo_file = "todo.json"
+        self.todos = self.load_todos()
+        
+        # 網路狀態變數
+        self.last_net_io = psutil.net_io_counters()
+        self.last_net_time = datetime.now()
         
         # 倒數計時變數
         self.remaining_seconds = 0
@@ -132,6 +143,22 @@ class DesktopWidget(QWidget):
         self.rain_val = QLabel("--%")
         weather_grid.addWidget(self.rain_val, 4, 1)
         
+        weather_grid.addWidget(QLabel("CPU"), 5, 0)
+        self.cpu_val = QLabel("--%")
+        weather_grid.addWidget(self.cpu_val, 5, 1)
+        
+        weather_grid.addWidget(QLabel("RAM"), 6, 0)
+        self.ram_val = QLabel("--%")
+        weather_grid.addWidget(self.ram_val, 6, 1)
+        
+        weather_grid.addWidget(QLabel("DL"), 7, 0)
+        self.net_down_val = QLabel("-- KB/s")
+        weather_grid.addWidget(self.net_down_val, 7, 1)
+        
+        weather_grid.addWidget(QLabel("UP"), 8, 0)
+        self.net_up_val = QLabel("-- KB/s")
+        weather_grid.addWidget(self.net_up_val, 8, 1)
+        
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
         self.detail_widgets["rain"] = self.rain_val
@@ -192,9 +219,34 @@ class DesktopWidget(QWidget):
         self.forecast_layout.setContentsMargins(0, 0, 0, 0)
         self.forecast_widgets = []
         
+        # --- Bottom Row 2 (To-Do List) ---
+        self.todo_card = QFrame()
+        self.todo_card.setProperty("class", "Card")
+        todo_vbox = QVBoxLayout(self.todo_card)
+        
+        todo_title_hbox = QHBoxLayout()
+        todo_title = QLabel("TO-DO LIST")
+        todo_title.setObjectName("TodoTitle")
+        todo_title_hbox.addWidget(todo_title)
+        
+        self.todo_input = QLineEdit()
+        self.todo_input.setPlaceholderText("Add task...")
+        self.todo_input.setProperty("class", "TimerInput")
+        self.todo_input.setFixedHeight(25)
+        self.todo_input.returnPressed.connect(self.add_todo)
+        
+        self.todo_list_container = QVBoxLayout()
+        self.todo_list_container.setSpacing(2)
+        
+        todo_vbox.addLayout(todo_title_hbox)
+        todo_vbox.addLayout(self.todo_list_container)
+        todo_vbox.addWidget(self.todo_input)
+        
         self.main_layout.addLayout(top_layout)
         self.main_layout.addWidget(self.forecast_area)
+        self.main_layout.addWidget(self.todo_card)
         
+        self.refresh_todo_ui()
         self.update_styles()
         
         self.old_pos = None
@@ -213,6 +265,12 @@ class DesktopWidget(QWidget):
         # 倒數計時專用計時器
         self.countdown_timer = QTimer(self)
         self.countdown_timer.timeout.connect(self.timer_tick)
+        
+        # 系統監控計時器 (5秒一次)
+        self.sys_timer = QTimer(self)
+        self.sys_timer.timeout.connect(self.update_system_stats)
+        self.sys_timer.start(5000)
+        self.update_system_stats()
 
     def update_time_and_date(self):
         now = datetime.now()
@@ -236,8 +294,12 @@ class DesktopWidget(QWidget):
         
         # 更新預報
         # 先清除舊的
-        for i in reversed(range(self.forecast_layout.count())): 
-            self.forecast_layout.itemAt(i).widget().setParent(None)
+        while self.forecast_layout.count():
+            item = self.forecast_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                item.layout().deleteLater()
             
         for day in data["forecast"]:
             f_card = QFrame()
@@ -252,7 +314,7 @@ class DesktopWidget(QWidget):
             i_l.setObjectName("ForecastIcon")
             i_l.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
-            t_l = QLabel(f"{day['max']}° / {day['min']}°")
+            t_l = QLabel(f"{day['min']} ~ {day['max']}°C")
             t_l.setProperty("class", "ForecastTemp")
             
             f_vbox.addWidget(d_l)
@@ -317,6 +379,130 @@ class DesktopWidget(QWidget):
             self.main_container.setStyleSheet("background-color: rgba(255, 0, 0, 0.8); border-radius: 20px;")
         else:
             self.update_styles()
+
+    # --- To-Do List Logic ---
+    def load_todos(self):
+        if os.path.exists(self.todo_file):
+            try:
+                with open(self.todo_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except:
+                return []
+        return []
+
+    def save_todos(self):
+        with open(self.todo_file, "w", encoding="utf-8") as f:
+            json.dump(self.todos, f, ensure_ascii=False)
+
+    def add_todo(self):
+        text = self.todo_input.text().strip()
+        if text and len(self.todos) < 5:
+            # 存儲為物件結構
+            self.todos.append({"text": text, "done": False})
+            self.save_todos()
+            self.todo_input.clear()
+            self.refresh_todo_ui()
+        elif len(self.todos) >= 5:
+            self.todo_input.setPlaceholderText("Limit reached (5)")
+
+    def remove_todo(self, index):
+        if 0 <= index < len(self.todos):
+            self.todos.pop(index)
+            self.save_todos()
+            self.refresh_todo_ui()
+
+    def toggle_todo_done(self, index):
+        if 0 <= index < len(self.todos):
+            self.todos[index]["done"] = not self.todos[index]["done"]
+            self.save_todos()
+            self.refresh_todo_ui()
+
+    def refresh_todo_ui(self):
+        # 清除舊的
+        while self.todo_list_container.count():
+            item = self.todo_list_container.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                # 清除嵌套的 layout
+                inner_layout = item.layout()
+                while inner_layout.count():
+                    inner_item = inner_layout.takeAt(0)
+                    if inner_item.widget():
+                        inner_item.widget().deleteLater()
+                inner_layout.deleteLater()
+        
+        # 建立新的
+        for i, todo in enumerate(self.todos):
+            item_hbox = QHBoxLayout()
+            item_hbox.setContentsMargins(0, 0, 0, 0)
+            
+            # 支援舊資料格式 (純字串轉物件)
+            if isinstance(todo, str):
+                todo = {"text": todo, "done": False}
+                self.todos[i] = todo
+            
+            # 任務文字
+            text_label = ClickableLabel(todo["text"])
+            text_label.setProperty("class", "TodoItem")
+            if todo["done"]:
+                text_label.setProperty("class", "TodoItem TodoItemDone")
+            
+            text_label.setCursor(Qt.CursorShape.PointingHandCursor)
+            # 點擊文字更換狀態
+            text_label.clicked.connect(lambda idx=i: self.toggle_todo_done(idx))
+            
+            # 刪除按鈕
+            del_btn = QPushButton("×")
+            del_btn.setProperty("class", "TodoDelBtn")
+            del_btn.setFixedWidth(30)
+            del_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            del_btn.clicked.connect(lambda idx=i: self.remove_todo(idx))
+            
+            item_hbox.addWidget(text_label, 1)
+            item_hbox.addWidget(del_btn)
+            
+            self.todo_list_container.addLayout(item_hbox)
+            
+        # 如果不滿 5 個，補空格保持高度穩定
+        for _ in range(5 - len(self.todos)):
+            spacer = QLabel(" ")
+            spacer.setFixedHeight(20)
+            self.todo_list_container.addWidget(spacer)
+
+    def update_system_stats(self):
+        try:
+            # CPU/RAM
+            cpu = psutil.cpu_percent()
+            ram = psutil.virtual_memory().percent
+            self.cpu_val.setText(f"{cpu}%")
+            self.ram_val.setText(f"{ram}%")
+            
+            # Network
+            now = datetime.now()
+            curr_net = psutil.net_io_counters()
+            interval = (now - self.last_net_time).total_seconds()
+            
+            if interval > 0:
+                dl_speed = (curr_net.bytes_recv - self.last_net_io.bytes_recv) / interval / 1024
+                up_speed = (curr_net.bytes_sent - self.last_net_io.bytes_sent) / interval / 1024
+                
+                # 下載速度顯示
+                if dl_speed < 1024:
+                    self.net_down_val.setText(f"{dl_speed:.1f} KB/s")
+                else:
+                    self.net_down_val.setText(f"{dl_speed/1024:.1f} MB/s")
+                
+                # 上傳速度顯示
+                if up_speed < 1024:
+                    self.net_up_val.setText(f"{up_speed:.1f} KB/s")
+                else:
+                    self.net_up_val.setText(f"{up_speed/1024:.1f} MB/s")
+            
+            self.last_net_io = curr_net
+            self.last_net_time = now
+        except Exception:
+            pass
 
     def update_styles(self):
         bg_rgba = (self.bg_color.red(), self.bg_color.green(), self.bg_color.blue(), self.bg_alpha)

@@ -56,6 +56,56 @@ class StyleManager:
                 color: {text_css};
                 margin-bottom: 10px;
             }}
+            .TimerBtn {{
+                background-color: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 5px;
+                color: {text_css};
+                font-size: 14px;
+                padding: 4px;
+            }}
+            .TimerBtn:hover {{
+                background-color: rgba(255, 255, 255, 0.4);
+            }}
+            .TimerInput {{
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: {text_css};
+                font-size: 20px;
+                font-weight: bold;
+                border-radius: 5px;
+            }}
+            #TimerDisplay {{
+                font-size: 44px;
+                font-weight: bold;
+                color: {text_css};
+            }}
+            .TodoItem {{
+                padding: 2px 5px;
+                font-size: 11px;
+                color: {text_css};
+            }}
+            .TodoItemDone {{
+                color: rgba(255, 255, 255, 0.3);
+                text-decoration: line-through;
+            }}
+            .TodoDelBtn {{
+                background: transparent;
+                border: none;
+                color: rgba(255, 255, 255, 0.2);
+                font-size: 13px;
+                font-weight: bold;
+                padding: 0 4px;
+            }}
+            .TodoDelBtn:hover {{
+                color: #ff5555;
+            }}
+            #TodoTitle {{
+                font-size: 13px;
+                font-weight: bold;
+                margin-bottom: 2px;
+                opacity: 0.8;
+            }}
             #DescLabel {{
                 font-size: 16px;
             }}
