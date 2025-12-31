@@ -1,52 +1,57 @@
 class StyleManager:
     @staticmethod
     def get_style(mode="glass", opacity=0.8):
-        # 基礎容器樣式
-        base_container = f"""
+        # 基礎顏色定義 (深藍色調，匹配圖片)
+        bg_color = f"rgba(20, 60, 120, {opacity * 0.7})"
+        card_bg = "rgba(255, 255, 255, 0.15)"
+        text_white = "#FFFFFF"
+        text_accent = "#FFD700" # 金黃色 (日落/UV)
+        
+        return f"""
             #MainWidget {{
-                background-color: rgba(255, 255, 255, {opacity});
-                border-radius: 15px;
+                background-color: {bg_color};
+                border-radius: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.2);
             }}
+            .Card {{
+                background-color: {card_bg};
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
             QLabel {{
-                color: #2c3e50;
+                color: {text_white};
                 font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
             }}
-            #TimeLabel {{
-                font-size: 48px;
+            #DayLabel {{
+                font-size: 32px;
+                font-weight: 200;
+                text-transform: uppercase;
+            }}
+            #DateLabel {{
+                font-size: 14px;
+                color: rgba(255,255,255,0.7);
+            }}
+            #TempLabel {{
+                font-size: 64px;
                 font-weight: bold;
             }}
-            #WeatherLabel {{
-                font-size: 18px;
+            #DescLabel {{
+                font-size: 16px;
+                color: rgba(255,255,255,0.8);
+            }}
+            .DetailLabel {{
+                font-size: 12px;
+                color: rgba(255,255,255,0.7);
+            }}
+            .DetailValue {{
+                font-size: 13px;
+                font-weight: bold;
+            }}
+            .ForecastDay {{
+                font-size: 12px;
+                font-weight: bold;
+            }}
+            .ForecastTemp {{
+                font-size: 14px;
             }}
         """
-        
-        if mode == "dark":
-            base_container = base_container.replace("rgba(255, 255, 255,", f"rgba(30, 30, 30,")
-            base_container = base_container.replace("color: #2c3e50;", "color: #ecf0f1;")
-            base_container = base_container.replace("border: 1px solid rgba(255, 255, 255, 0.2);", "border: 1px solid rgba(0, 0, 0, 0.3);")
-            
-        elif mode == "glass":
-            # 毛玻璃質感透過視窗屬性實現，這裡主要是字體與基礎背景
-            base_container = f"""
-                #MainWidget {{
-                    background-color: rgba(255, 255, 255, {opacity * 0.4});
-                    border-radius: 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.5);
-                }}
-                QLabel {{
-                    color: white;
-                    font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-                }}
-                #TimeLabel {{
-                    font-size: 52px;
-                    font-weight: 800;
-                }}
-                #WeatherLabel {{
-                    font-size: 20px;
-                    font-weight: 400;
-                }}
-            """
-            
-        return base_container
