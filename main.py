@@ -11,16 +11,16 @@ from style_manager import StyleManager
 class DesktopWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.weather_service = WeatherService("Taipei")
+        self.weather_service = WeatherService("Taoyuan")
         self.cities = {
-            "台北": "Taipei", "新北": "New_Taipei", "桃園": "Taoyuan",
+            "桃園": "Taoyuan", "台北": "Taipei", "新北": "New_Taipei",
             "台中": "Taichung", "台南": "Tainan", "高雄": "Kaohsiung", "新竹": "Hsinchu"
         }
-        self.current_city_name = "台北"
+        self.current_city_name = "桃園"
         
-        # 預設風格數據
-        self.bg_color = QColor(20, 60, 120)
-        self.bg_alpha = 180
+        # 預設風格數據 (黑色背景)
+        self.bg_color = QColor(0, 0, 0)
+        self.bg_alpha = 200
         self.text_color = QColor(255, 255, 255)
         self.text_alpha = 255
         self.current_opacity = 0.95 # 整體視窗不透明度
