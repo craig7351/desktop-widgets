@@ -2,8 +2,9 @@ import sys
 import json
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QMenu, QFrame, QGridLayout)
+                             QLabel, QMenu, QFrame, QGridLayout, QColorDialog)
 from PyQt6.QtCore import Qt, QTimer, QPoint, QTime
+from PyQt6.QtGui import QColor
 from weather_service import WeatherService
 from style_manager import StyleManager
 
@@ -16,8 +17,13 @@ class DesktopWidget(QWidget):
             "台中": "Taichung", "台南": "Tainan", "高雄": "Kaohsiung", "新竹": "Hsinchu"
         }
         self.current_city_name = "台北"
-        self.current_mode = "glass"
-        self.current_opacity = 0.85
+        
+        # 預設風格數據
+        self.bg_color = QColor(20, 60, 120)
+        self.bg_alpha = 180
+        self.text_color = QColor(255, 255, 255)
+        self.text_alpha = 255
+        self.current_opacity = 0.95 # 整體視窗不透明度
         
         self.init_ui()
         self.setup_timers()
@@ -25,9 +31,17 @@ class DesktopWidget(QWidget):
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setObjectName("MainWidget")
         
-        self.main_layout = QVBoxLayout()
+        # 建立外殼佈局
+        self.root_layout = QVBoxLayout(self)
+        self.root_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 建立主要視覺容器 (負責背景與圓角)
+        self.main_container = QFrame()
+        self.main_container.setObjectName("MainWidget")
+        self.root_layout.addWidget(self.main_container)
+        
+        self.main_layout = QVBoxLayout(self.main_container)
         self.main_layout.setContentsMargins(15, 15, 15, 15)
         self.main_layout.setSpacing(10)
         
@@ -69,17 +83,27 @@ class DesktopWidget(QWidget):
         detail_grid = QGridLayout(self.detail_card)
         
         self.detail_widgets = {}
-        items = [("UV Index", "uv"), ("Wind", "wind"), ("Humidity", "humidity"), 
-                 ("Sunrise", "sunrise"), ("Sunset", "sunset"), ("Pressure", "pressure")]
+        # 改為顯示時間、地點與日出日落
+        self.time_label_big = QLabel("15:20:00")
+        self.time_label_big.setObjectName("BigTimeLabel")
+        self.time_label_big.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        detail_grid.addWidget(self.time_label_big, 0, 0, 1, 2)
         
-        for i, (label, key) in enumerate(items):
-            l = QLabel(label)
-            l.setProperty("class", "DetailLabel")
-            v = QLabel("--")
-            v.setProperty("class", "DetailValue")
-            detail_grid.addWidget(l, i, 0)
-            detail_grid.addWidget(v, i, 1)
-            self.detail_widgets[key] = v
+        self.location_label = QLabel(self.current_city_name)
+        self.location_label.setObjectName("LocationLabel")
+        self.location_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        detail_grid.addWidget(self.location_label, 1, 0, 1, 2)
+        
+        detail_grid.addWidget(QLabel("Sunrise"), 2, 0)
+        self.sunrise_val = QLabel("--")
+        detail_grid.addWidget(self.sunrise_val, 2, 1)
+        
+        detail_grid.addWidget(QLabel("Sunset"), 3, 0)
+        self.sunset_val = QLabel("--")
+        detail_grid.addWidget(self.sunset_val, 3, 1)
+        
+        self.detail_widgets["sunrise"] = self.sunrise_val
+        self.detail_widgets["sunset"] = self.sunset_val
             
         top_layout.addWidget(self.main_card)
         top_layout.addWidget(self.detail_card)
@@ -93,7 +117,6 @@ class DesktopWidget(QWidget):
         self.main_layout.addLayout(top_layout)
         self.main_layout.addWidget(self.forecast_area)
         
-        self.setLayout(self.main_layout)
         self.update_styles()
         
         self.old_pos = None
@@ -113,6 +136,7 @@ class DesktopWidget(QWidget):
         now = datetime.now()
         self.day_label.setText(now.strftime("%A").upper())
         self.date_label.setText(now.strftime("%B %d, %Y").upper())
+        self.time_label_big.setText(now.strftime("%H:%M:%S"))
 
     def update_weather(self):
         data = self.weather_service.fetch_weather()
@@ -122,10 +146,7 @@ class DesktopWidget(QWidget):
         self.desc_label.setText(data['desc'].upper())
         
         # 更新細項
-        self.detail_widgets["uv"].setText(str(data["uv"]))
-        self.detail_widgets["wind"].setText(data["wind"])
-        self.detail_widgets["humidity"].setText(f"{data['humidity']}%")
-        self.detail_widgets["pressure"].setText(f"{data['pressure']} mb")
+        self.location_label.setText(self.current_city_name)
         self.detail_widgets["sunrise"].setText(data["sunrise"])
         self.detail_widgets["sunset"].setText(data["sunset"])
         
@@ -150,8 +171,11 @@ class DesktopWidget(QWidget):
             self.forecast_layout.addWidget(f_card)
 
     def update_styles(self):
-        style = StyleManager.get_style(self.current_mode, self.current_opacity)
-        self.setStyleSheet(style)
+        bg_rgba = (self.bg_color.red(), self.bg_color.green(), self.bg_color.blue(), self.bg_alpha)
+        text_rgba = (self.text_color.red(), self.text_color.green(), self.text_color.blue(), self.text_alpha)
+        
+        style = StyleManager.get_style(bg_rgba, text_rgba)
+        self.main_container.setStyleSheet(style) # 樣式套用在容器上
         self.setWindowOpacity(self.current_opacity)
 
     def mousePressEvent(self, event):
@@ -172,7 +196,29 @@ class DesktopWidget(QWidget):
             action = city_menu.addAction(name)
             action.triggered.connect(lambda checked, n=name, c=code: self.change_city(n, c))
 
-        opac_menu = context_menu.addMenu("透明度")
+        # 風格與顏色設定
+        settings_menu = context_menu.addMenu("外觀設定")
+        
+        # 1. 背景調整
+        bg_menu = settings_menu.addMenu("背景顏色")
+        bg_pick = bg_menu.addAction("選擇底色")
+        bg_pick.triggered.connect(self.pick_bg_color)
+        bg_alpha_menu = bg_menu.addMenu("背景透明度")
+        for val in [50, 100, 150, 200, 255]:
+            act = bg_alpha_menu.addAction(f"{int(val/255.0*100)}%")
+            act.triggered.connect(lambda checked, v=val: self.change_bg_alpha(v))
+            
+        # 2. 文字調整
+        text_menu = settings_menu.addMenu("文字顏色")
+        text_pick = text_menu.addAction("選擇字型顏色")
+        text_pick.triggered.connect(self.pick_text_color)
+        text_alpha_menu = text_menu.addMenu("文字透明度")
+        for val in [50, 100, 150, 200, 255]:
+            act = text_alpha_menu.addAction(f"{int(val/255.0*100)}%")
+            act.triggered.connect(lambda checked, v=val: self.change_text_alpha(v))
+
+        # 3. 整體視窗透明度
+        opac_menu = settings_menu.addMenu("視窗整體透明度")
         for val in [0.4, 0.6, 0.8, 1.0]:
             action = opac_menu.addAction(f"{int(val*100)}%")
             action.triggered.connect(lambda checked, v=val: self.change_opacity(v))
@@ -181,6 +227,26 @@ class DesktopWidget(QWidget):
         quit_action = context_menu.addAction("結束")
         quit_action.triggered.connect(QApplication.instance().quit)
         context_menu.exec(event.globalPos())
+
+    def pick_bg_color(self):
+        color = QColorDialog.getColor(self.bg_color, self, "選擇背景顏色")
+        if color.isValid():
+            self.bg_color = color
+            self.update_styles()
+
+    def pick_text_color(self):
+        color = QColorDialog.getColor(self.text_color, self, "選擇文字顏色")
+        if color.isValid():
+            self.text_color = color
+            self.update_styles()
+
+    def change_bg_alpha(self, val):
+        self.bg_alpha = val
+        self.update_styles()
+
+    def change_text_alpha(self, val):
+        self.text_alpha = val
+        self.update_styles()
 
     def change_city(self, name, code):
         self.current_city_name = name

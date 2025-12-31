@@ -24,6 +24,7 @@ class WeatherService:
                     "visibility": current['visibility'],
                     "sunrise": data['weather'][0]['astronomy'][0]['sunrise'],
                     "sunset": data['weather'][0]['astronomy'][0]['sunset'],
+                    "rain_chance": data['weather'][0]['hourly'][int(datetime.now().hour/3)]['chanceofrain'], # 概略抓取當前時段
                     "forecast": []
                 }
                 
