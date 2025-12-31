@@ -1,12 +1,17 @@
-import sys
-import json
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QMenu, QFrame, QGridLayout, QColorDialog)
-from PyQt6.QtCore import Qt, QTimer, QPoint, QTime
-from PyQt6.QtGui import QColor
+                             QLabel, QMenu, QFrame, QGridLayout, QColorDialog,
+                             QPushButton, QLineEdit, QStackedWidget)
+from PyQt6.QtCore import Qt, QTimer, QPoint, QTime, QPropertyAnimation, QSequentialAnimationGroup, pyqtSignal
+from PyQt6.QtGui import QColor, QPalette
 from weather_service import WeatherService
 from style_manager import StyleManager
+
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
 
 class DesktopWidget(QWidget):
     def __init__(self):
@@ -24,6 +29,13 @@ class DesktopWidget(QWidget):
         self.text_color = QColor(255, 255, 255)
         self.text_alpha = 255
         self.current_opacity = 0.95 # 整體視窗不透明度
+        
+        # 倒數計時變數
+        self.remaining_seconds = 0
+        self.is_timer_running = False
+        self.flash_timer = QTimer(self)
+        self.flash_timer.timeout.connect(self.toggle_flash)
+        self.flash_state = False
         
         self.init_ui()
         self.setup_timers()
@@ -80,41 +92,95 @@ class DesktopWidget(QWidget):
         main_vbox.addLayout(temp_hbox)
         main_vbox.addWidget(self.desc_label)
         
-        # 2. Detail Card (右上)
+        # 2. Detail Card (右上) - 使用 StackedWidget 切換模式
         self.detail_card = QFrame()
         self.detail_card.setProperty("class", "Card")
         self.detail_card.setFixedWidth(200)
         self.detail_card.setFixedHeight(220)
-        detail_grid = QGridLayout(self.detail_card)
+        
+        self.stacked_detail = QStackedWidget(self.detail_card)
+        self.stacked_detail.setFixedSize(200, 220)
+        
+        # --- 模式 1: 氣象與大時鐘 ---
+        self.weather_page = QWidget()
+        weather_grid = QGridLayout(self.weather_page)
         
         self.detail_widgets = {}
-        # 改為顯示時間、地點與日出日落
-        self.time_label_big = QLabel("15:20:00")
+        self.time_label_big = ClickableLabel("00:00:00")
         self.time_label_big.setObjectName("BigTimeLabel")
         self.time_label_big.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        detail_grid.addWidget(self.time_label_big, 0, 0, 1, 2)
+        self.time_label_big.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.time_label_big.clicked.connect(self.switch_to_timer)
+        weather_grid.addWidget(self.time_label_big, 0, 0, 1, 2)
         
         self.location_label = QLabel(self.current_city_name)
         self.location_label.setObjectName("LocationLabel")
         self.location_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        detail_grid.addWidget(self.location_label, 1, 0, 1, 2)
+        weather_grid.addWidget(self.location_label, 1, 0, 1, 2)
         
-        detail_grid.addWidget(QLabel("Sunrise"), 2, 0)
+        weather_grid.addWidget(QLabel("Sunrise"), 2, 0)
         self.sunrise_val = QLabel("--")
-        detail_grid.addWidget(self.sunrise_val, 2, 1)
+        weather_grid.addWidget(self.sunrise_val, 2, 1)
         
-        detail_grid.addWidget(QLabel("Sunset"), 3, 0)
+        weather_grid.addWidget(QLabel("Sunset"), 3, 0)
         self.sunset_val = QLabel("--")
-        detail_grid.addWidget(self.sunset_val, 3, 1)
+        weather_grid.addWidget(self.sunset_val, 3, 1)
         
-        detail_grid.addWidget(QLabel("Rain"), 4, 0)
+        weather_grid.addWidget(QLabel("Rain"), 4, 0)
         self.rain_val = QLabel("--%")
-        detail_grid.addWidget(self.rain_val, 4, 1)
+        weather_grid.addWidget(self.rain_val, 4, 1)
         
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
         self.detail_widgets["rain"] = self.rain_val
-            
+
+        # --- 模式 2: 倒數計時器 ---
+        self.timer_page = QWidget()
+        timer_layout = QVBoxLayout(self.timer_page)
+        timer_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.timer_display = QLabel("00:00")
+        self.timer_display.setObjectName("TimerDisplay")
+        self.timer_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        input_hbox = QHBoxLayout()
+        self.min_input = QLineEdit()
+        self.min_input.setPlaceholderText("MM")
+        self.min_input.setProperty("class", "TimerInput")
+        self.min_input.setFixedWidth(60)
+        self.min_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        sec_input_label = QLabel(":")
+        
+        self.sec_input = QLineEdit()
+        self.sec_input.setPlaceholderText("SS")
+        self.sec_input.setProperty("class", "TimerInput")
+        self.sec_input.setFixedWidth(60)
+        self.sec_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        input_hbox.addWidget(self.min_input)
+        input_hbox.addWidget(sec_input_label)
+        input_hbox.addWidget(self.sec_input)
+        
+        btn_hbox = QHBoxLayout()
+        self.start_timer_btn = QPushButton("開始")
+        self.start_timer_btn.setProperty("class", "TimerBtn")
+        self.start_timer_btn.clicked.connect(self.toggle_timer_logic)
+        
+        self.back_btn = QPushButton("返回")
+        self.back_btn.setProperty("class", "TimerBtn")
+        self.back_btn.clicked.connect(self.switch_to_weather)
+        
+        btn_hbox.addWidget(self.start_timer_btn)
+        btn_hbox.addWidget(self.back_btn)
+        
+        timer_layout.addWidget(self.timer_display)
+        timer_layout.addLayout(input_hbox)
+        timer_layout.addLayout(btn_hbox)
+        
+        self.stacked_detail.addWidget(self.weather_page)
+        self.stacked_detail.addWidget(self.timer_page)
+        
         top_layout.addWidget(self.main_card)
         top_layout.addWidget(self.detail_card)
         
@@ -141,6 +207,10 @@ class DesktopWidget(QWidget):
         self.weather_timer.timeout.connect(self.update_weather)
         self.weather_timer.start(1800000)
         self.update_weather()
+        
+        # 倒數計時專用計時器
+        self.countdown_timer = QTimer(self)
+        self.countdown_timer.timeout.connect(self.timer_tick)
 
     def update_time_and_date(self):
         now = datetime.now()
@@ -187,6 +257,64 @@ class DesktopWidget(QWidget):
             f_vbox.addWidget(i_l)
             f_vbox.addWidget(t_l)
             self.forecast_layout.addWidget(f_card)
+
+    def switch_to_timer(self):
+        self.stacked_detail.setCurrentWidget(self.timer_page)
+
+    def switch_to_weather(self):
+        self.stop_timer()
+        self.stacked_detail.setCurrentWidget(self.weather_page)
+
+    def toggle_timer_logic(self):
+        if self.is_timer_running:
+            self.stop_timer()
+        else:
+            self.start_timer()
+
+    def start_timer(self):
+        try:
+            m = int(self.min_input.text() or 0)
+            s = int(self.sec_input.text() or 0)
+            self.remaining_seconds = m * 60 + s
+            
+            if self.remaining_seconds > 0:
+                self.is_timer_running = True
+                self.start_timer_btn.setText("停止")
+                self.countdown_timer.start(1000)
+                self.update_timer_display()
+                self.min_input.hide()
+                self.sec_input.hide()
+        except ValueError:
+            pass
+
+    def stop_timer(self):
+        self.is_timer_running = False
+        self.start_timer_btn.setText("開始")
+        self.countdown_timer.stop()
+        self.flash_timer.stop()
+        self.main_container.setProperty("class", "MainWidget")
+        self.update_styles()
+        self.min_input.show()
+        self.sec_input.show()
+
+    def timer_tick(self):
+        if self.remaining_seconds > 0:
+            self.remaining_seconds -= 1
+            self.update_timer_display()
+        else:
+            self.stop_timer()
+            self.flash_timer.start(500) # 開始閃爍提醒
+
+    def update_timer_display(self):
+        m, s = divmod(self.remaining_seconds, 60)
+        self.timer_display.setText(f"{m:02d}:{s:02d}")
+
+    def toggle_flash(self):
+        self.flash_state = not self.flash_state
+        if self.flash_state:
+            self.main_container.setStyleSheet("background-color: rgba(255, 0, 0, 0.8); border-radius: 20px;")
+        else:
+            self.update_styles()
 
     def update_styles(self):
         bg_rgba = (self.bg_color.red(), self.bg_color.green(), self.bg_color.blue(), self.bg_alpha)
