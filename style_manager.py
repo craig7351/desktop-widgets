@@ -38,6 +38,14 @@ class StyleManager:
                 font-size: 64px;
                 font-weight: bold;
             }}
+            #WeatherIcon {{
+                font-size: 72px;
+                margin-left: 10px;
+            }}
+            #ForecastIcon {{
+                font-size: 24px;
+                margin: 5px 0;
+            }}
             #BigTimeLabel {{
                 font-size: 38px;
                 font-weight: bold;

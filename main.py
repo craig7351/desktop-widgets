@@ -63,7 +63,12 @@ class DesktopWidget(QWidget):
         temp_hbox = QHBoxLayout()
         self.temp_label = QLabel("18°C")
         self.temp_label.setObjectName("TempLabel")
+        
+        self.weather_icon = QLabel("☀️")
+        self.weather_icon.setObjectName("WeatherIcon")
+        
         temp_hbox.addWidget(self.temp_label)
+        temp_hbox.addWidget(self.weather_icon)
         temp_hbox.addStretch()
         
         self.desc_label = QLabel("PARTLY CLOUDY")
@@ -149,6 +154,7 @@ class DesktopWidget(QWidget):
         
         self.temp_label.setText(f"{data['temp_C']}°C")
         self.desc_label.setText(data['desc'].upper())
+        self.weather_icon.setText(data['icon'])
         
         # 更新細項
         self.location_label.setText(self.current_city_name)
@@ -169,10 +175,16 @@ class DesktopWidget(QWidget):
             
             d_l = QLabel(day["day"].upper())
             d_l.setProperty("class", "ForecastDay")
+            
+            i_l = QLabel(day["icon"])
+            i_l.setObjectName("ForecastIcon")
+            i_l.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            
             t_l = QLabel(f"{day['max']}° / {day['min']}°")
             t_l.setProperty("class", "ForecastTemp")
             
             f_vbox.addWidget(d_l)
+            f_vbox.addWidget(i_l)
             f_vbox.addWidget(t_l)
             self.forecast_layout.addWidget(f_card)
 
