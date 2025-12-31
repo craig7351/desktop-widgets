@@ -224,24 +224,33 @@ class DesktopWidget(QWidget):
         self.ram_bar.setTextVisible(False)
         self.ram_bar.setProperty("class", "RamBar")
         weather_grid.addWidget(self.ram_bar, 8, 0, 1, 2)
+
+        weather_grid.addWidget(QLabel("Disk C:"), 9, 0)
+        self.disk_val = QLabel("--%")
+        weather_grid.addWidget(self.disk_val, 9, 1)
+        self.disk_bar = QProgressBar()
+        self.disk_bar.setFixedHeight(4)
+        self.disk_bar.setTextVisible(False)
+        self.disk_bar.setProperty("class", "DiskBar")
+        weather_grid.addWidget(self.disk_bar, 10, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("DL ⬇️"), 9, 0)
+        weather_grid.addWidget(QLabel("DL ⬇️"), 11, 0)
         self.net_down_val = QLabel("-- KB/s")
-        weather_grid.addWidget(self.net_down_val, 9, 1)
+        weather_grid.addWidget(self.net_down_val, 11, 1)
         self.net_down_bar = QProgressBar()
         self.net_down_bar.setFixedHeight(4)
         self.net_down_bar.setTextVisible(False)
         self.net_down_bar.setProperty("class", "NetDownBar")
-        weather_grid.addWidget(self.net_down_bar, 10, 0, 1, 2)
+        weather_grid.addWidget(self.net_down_bar, 12, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("UP ⬆️"), 11, 0)
+        weather_grid.addWidget(QLabel("UP ⬆️"), 13, 0)
         self.net_up_val = QLabel("-- KB/s")
-        weather_grid.addWidget(self.net_up_val, 11, 1)
+        weather_grid.addWidget(self.net_up_val, 13, 1)
         self.net_up_bar = QProgressBar()
         self.net_up_bar.setFixedHeight(4)
         self.net_up_bar.setTextVisible(False)
         self.net_up_bar.setProperty("class", "NetUpBar")
-        weather_grid.addWidget(self.net_up_bar, 12, 0, 1, 2)
+        weather_grid.addWidget(self.net_up_bar, 14, 0, 1, 2)
         
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
@@ -533,12 +542,15 @@ class DesktopWidget(QWidget):
             # CPU/RAM
             cpu = psutil.cpu_percent()
             ram = psutil.virtual_memory().percent
+            disk = psutil.disk_usage('C:/').percent
             self.cpu_val.setText(f"{cpu}%")
             self.ram_val.setText(f"{ram}%")
+            self.disk_val.setText(f"{disk}%")
             
             # 更新進度條與狀態顏色
             self.cpu_bar.setValue(int(cpu))
             self.ram_bar.setValue(int(ram))
+            self.disk_bar.setValue(int(disk))
             
             # 使用率顏色狀態判定
             def get_status(p):
@@ -548,12 +560,15 @@ class DesktopWidget(QWidget):
             
             self.cpu_bar.setProperty("status", get_status(cpu))
             self.ram_bar.setProperty("status", get_status(ram))
+            self.disk_bar.setProperty("status", get_status(disk))
             
             # 觸發樣式重新應用
             self.cpu_bar.style().unpolish(self.cpu_bar)
             self.cpu_bar.style().polish(self.cpu_bar)
             self.ram_bar.style().unpolish(self.ram_bar)
             self.ram_bar.style().polish(self.ram_bar)
+            self.disk_bar.style().unpolish(self.disk_bar)
+            self.disk_bar.style().polish(self.disk_bar)
             
             # Network
             now = datetime.now()

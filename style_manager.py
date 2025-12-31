@@ -160,6 +160,10 @@ class StyleManager:
             .RamBar::chunk {{
                 background-color: rgba(255, 214, 0, 0.6);
             }}
+            /* Disk 基調色 (灰銀) */
+            .DiskBar::chunk {{
+                background-color: rgba(180, 200, 220, 0.6);
+            }}
             /* 狀態色擴充 */
             QProgressBar[status="warning"]::chunk {{
                 background-color: rgba(255, 145, 0, 0.8);
