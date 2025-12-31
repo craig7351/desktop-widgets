@@ -219,13 +219,23 @@ class DesktopWidget(QWidget):
         self.ram_bar.setTextVisible(False)
         weather_grid.addWidget(self.ram_bar, 8, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("DL"), 9, 0)
+        weather_grid.addWidget(QLabel("DL ⬇️"), 9, 0)
         self.net_down_val = QLabel("-- KB/s")
         weather_grid.addWidget(self.net_down_val, 9, 1)
+        self.net_down_bar = QProgressBar()
+        self.net_down_bar.setFixedHeight(4)
+        self.net_down_bar.setTextVisible(False)
+        self.net_down_bar.setProperty("class", "NetDownBar")
+        weather_grid.addWidget(self.net_down_bar, 10, 0, 1, 2)
         
-        weather_grid.addWidget(QLabel("UP"), 10, 0)
+        weather_grid.addWidget(QLabel("UP ⬆️"), 11, 0)
         self.net_up_val = QLabel("-- KB/s")
-        weather_grid.addWidget(self.net_up_val, 10, 1)
+        weather_grid.addWidget(self.net_up_val, 11, 1)
+        self.net_up_bar = QProgressBar()
+        self.net_up_bar.setFixedHeight(4)
+        self.net_up_bar.setTextVisible(False)
+        self.net_up_bar.setProperty("class", "NetUpBar")
+        weather_grid.addWidget(self.net_up_bar, 12, 0, 1, 2)
         
         self.detail_widgets["sunrise"] = self.sunrise_val
         self.detail_widgets["sunset"] = self.sunset_val
@@ -535,21 +545,27 @@ class DesktopWidget(QWidget):
             interval = (now - self.last_net_time).total_seconds()
             
             if interval > 0:
-                dl_speed = (curr_net.bytes_recv - self.last_net_io.bytes_recv) / interval / 1024
-                up_speed = (curr_net.bytes_sent - self.last_net_io.bytes_sent) / interval / 1024
+                dl_speed_kb = (curr_net.bytes_recv - self.last_net_io.bytes_recv) / interval / 1024
+                up_speed_kb = (curr_net.bytes_sent - self.last_net_io.bytes_sent) / interval / 1024
                 
-                # 下載速度顯示
-                if dl_speed < 1024:
-                    self.net_down_val.setText(f"{dl_speed:.1f} KB/s")
+                # Download speed display & bar (Ref: 10MB/s = 10240 KB/s)
+                if dl_speed_kb < 1024:
+                    self.net_down_val.setText(f"{dl_speed_kb:.1f} KB/s")
                 else:
-                    self.net_down_val.setText(f"{dl_speed/1024:.1f} MB/s")
+                    self.net_down_val.setText(f"{dl_speed_kb/1024:.1f} MB/s")
                 
-                # 上傳速度顯示
-                if up_speed < 1024:
-                    self.net_up_val.setText(f"{up_speed:.1f} KB/s")
+                dl_percent = min(100, int((dl_speed_kb / 10240) * 100))
+                self.net_down_bar.setValue(dl_percent)
+                
+                # Upload speed display & bar (Ref: 2MB/s = 2048 KB/s for Up usually lower)
+                if up_speed_kb < 1024:
+                    self.net_up_val.setText(f"{up_speed_kb:.1f} KB/s")
                 else:
-                    self.net_up_val.setText(f"{up_speed/1024:.1f} MB/s")
-            
+                    self.net_up_val.setText(f"{up_speed_kb/1024:.1f} MB/s")
+                    
+                up_percent = min(100, int((up_speed_kb / 2048) * 100))
+                self.net_up_bar.setValue(up_percent)
+                
             self.last_net_io = curr_net
             self.last_net_time = now
         except Exception:

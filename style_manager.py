@@ -156,4 +156,10 @@ class StyleManager:
             QProgressBar[critical="true"]::chunk {{
                 background-color: rgba(255, 85, 85, 0.8);
             }}
+            .NetDownBar::chunk {{
+                background-color: rgba(0, 180, 255, 0.6);
+            }}
+            .NetUpBar::chunk {{
+                background-color: rgba(180, 100, 255, 0.6);
+            }}
         """
