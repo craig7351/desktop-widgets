@@ -35,12 +35,13 @@ class StyleManager:
                 color: {text_css}; /* 使用者色，透明度由傳入參數決定 */
             }}
             #TempLabel {{
-                font-size: 64px;
+                font-size: 56px;
                 font-weight: bold;
+                color: {text_css};
             }}
             #WeatherIcon {{
                 font-size: 64px;
-                margin-left: 10px;
+                margin-left: 5px;
             }}
             #ForecastIcon {{
                 font-size: 24px;
