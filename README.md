@@ -9,6 +9,17 @@
 - **可調整透明度**：滑桿即時預覽。
 - **風格切換**：支援暗色/亮色與毛玻璃質感。
 
+## 預覽截圖 (Gallery)
+
+<div align="center">
+  <img src="assets/demo_full_desktop.png" alt="Full Desktop View" width="800"/>
+  <p><i>完整桌面效果 (Full Desktop)</i></p>
+</div>
+
+| 主畫面 (Main View) | 系統設定 (Settings) | 精簡模式 (Compact) |
+| :---: | :---: | :---: |
+| <img src="assets/demo_main_view.png" width="250"/> | <img src="assets/demo_settings_view.png" width="250"/> | <img src="assets/demo_compact_view.png" width="250"/> |
+
 ## 安裝與執行
 
 1. **建立虛擬環境**
