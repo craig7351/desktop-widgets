@@ -18,6 +18,8 @@
 | **JavaScript (Electron)** | ✅ 介面極美、Web 技術通用。<br>❌ 記憶體佔用極高。 | 不適合作為常駐桌面的輕量 Widget，資源消耗過大。 |
 | **C# (WinUI 3)** | ✅ 效能好、原生支援。<br>❌ 學習門檻較高。 | 開發週期較長，不如 Python 靈活。 |
 
+> 💡 如果您對本專案的完整開發歷程、需求演進與詳細 User Keep 感興趣，歡迎閱讀 [PROJECT_HISTORY.md](PROJECT_HISTORY.md)。
+
 ## 預覽截圖 (Gallery)
 
 <div align="center">
