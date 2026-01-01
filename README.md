@@ -16,7 +16,7 @@
   <p><i>完整桌面效果 (Full Desktop)</i></p>
 </div>
 
-| 主畫面 (Main View) | 系統設定 (Settings) | 精簡模式 (Compact) |
+| 主畫面 (Main View) | 系統設定 (Settings) | 自定義顏色 (Custom Colors) |
 | :---: | :---: | :---: |
 | <img src="assets/demo_main_view.png" width="250"/> | <img src="assets/demo_settings_view.png" width="250"/> | <img src="assets/demo_compact_view.png" width="250"/> |
 
